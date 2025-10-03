@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>+ Artı Olasılık Hesaplayıcı</title>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 30px; }
+    h2 { color: #333; }
+    .level { margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; }
+    label { min-width: 140px; }
+    input[type=number] { width: 60px; padding: 3px; }
+    select { padding: 3px; }
+    button { padding: 8px 15px; background: #4CAF50; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #45a049; }
+    #result { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h2>+ Artı Olasılık Hesaplayıcı (+0 → +9)</h2>
+
+Başlangıç +: <input type="number" id="startPlus" value="0" min="0" max="9">
+Hedef +: <input type="number" id="endPlus" value="9" min="1" max="9">
+Item sayısı: <input type="number" id="items" value="100" min="1"><br><br>
+
+<div id="levels"></div>
+
+<button onclick="calculate()">Hesapla</button>
+
+<h3>Sonuç:</h3>
+<pre id="result"></pre>
+
+<script>
+const maxLevel = 9;
+
+
+const default_probs = [1.00, 0.80, 0.70, 0.60, 0.50, 0.25, 0.20, 0.18, 0.10]; // +0→+1 … +8→+9
+
+
+const levelsDiv = document.getElementById("levels");
+const prob_inputs = [];
+const bonus_inputs = [];
+
+for(let i=0;i<maxLevel;i++){
+    const div = document.createElement("div");
+    div.className = "level";
+    
+    const label = document.createElement("label");
+    label.innerText = `+${i} → +${i+1} olasılık (%)`;
+    
+    const probInput = document.createElement("input");
+    probInput.type = "number";
+    probInput.value = (default_probs[i]*100).toFixed(0);
+    probInput.min = 0;
+    probInput.max = 100;
+    
+    const bonusSelect = document.createElement("select");
+    bonusSelect.innerHTML = `<option value="0">Bonus Yok</option>
+                            <option value="0.05">+5%</option>
+                            <option value="0.10">+10%</option>`;
+    
+    div.appendChild(label);
+    div.appendChild(probInput);
+    div.appendChild(bonusSelect);
+    
+    levelsDiv.appendChild(div);
+    
+    prob_inputs.push(probInput);
+    bonus_inputs.push(bonusSelect);
+}
+
+function calculate(){
+    const startPlus = parseInt(document.getElementById("startPlus").value);
+    const endPlus = parseInt(document.getElementById("endPlus").value);
+    const items = parseInt(document.getElementById("items").value);
+    
+    if(endPlus <= startPlus){
+        alert("Hedef + değeri başlangıç + değerinden büyük olmalı!");
+        return;
+    }
+    
+    let p_target = 1.0;
+    
+    for(let i=startPlus;i<endPlus;i++){
+        let prob = parseFloat(prob_inputs[i].value)/100;
+        let bonus = parseFloat(bonus_inputs[i].value);
+        prob += bonus;
+        if(prob>1) prob=1;
+        p_target *= prob;
+    }
+    
+    const expected = items * p_target;
+    const none = Math.pow(1-p_target, items);
+    
+    document.getElementById("result").textContent = 
+`Her itemin +${endPlus} olma olasılığı: ${(p_target*100).toFixed(2)}%
+${items} item için beklenen +${endPlus} sayısı: ${expected.toFixed(2)}
+Hiç +${endPlus} olmama olasılığı: ${(none*100).toFixed(2)}%`;
+}
+</script>
+
+</body>
+</html>
